@@ -19,6 +19,7 @@ class LoginState extends Equatable {
     this.password = '',
     this.isPasswordVisible = false,
     this.formKey,
+    this.errorMessage = 'Error desconocido',
   });
 
   final LoginStatus status;
@@ -26,6 +27,7 @@ class LoginState extends Equatable {
   final String password;
   final bool isPasswordVisible;
   final GlobalKey<FormState>? formKey;
+  final String errorMessage;
 
   LoginState copyWith({
     LoginStatus? status,
@@ -33,6 +35,7 @@ class LoginState extends Equatable {
     String? password,
     bool? isPasswordVisible,
     GlobalKey<FormState>? formKey,
+    String? errorMessage,
   }) {
     return LoginState(
       status: status ?? this.status,
@@ -40,6 +43,7 @@ class LoginState extends Equatable {
       password: password ?? this.password,
       isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
       formKey: formKey ?? this.formKey,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
@@ -50,5 +54,6 @@ class LoginState extends Equatable {
     password,
     isPasswordVisible,
     formKey,
+    errorMessage,
   ];
 }

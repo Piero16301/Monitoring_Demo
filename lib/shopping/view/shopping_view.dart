@@ -93,23 +93,17 @@ class ShoppingView extends StatelessWidget {
                     },
                   ),
                 ),
-                OrderSummaryWidget(
-                  subtotal: state.subtotal,
-                  shipping: state.shipping,
-                  discount: state.discount,
-                  total: state.total,
-                ),
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: () {
                       unawaited(
-                        analytics.trackPurchaseEvent(
-                          value: state.total,
+                        analytics.trackScreenView(
+                          screenName: 'shopping_checkout',
                         ),
                       );
-                      context.read<ShoppingCubit>().completePurchase();
+                      _showOrderSummaryOverlay(context, state, analytics);
                     },
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
@@ -118,7 +112,7 @@ class ShoppingView extends StatelessWidget {
                       elevation: 0,
                     ),
                     child: const Text(
-                      'Completar Compra',
+                      'Completar compra',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -130,6 +124,81 @@ class ShoppingView extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showOrderSummaryOverlay(
+    BuildContext baseContext,
+    ShoppingState state,
+    AnalyticsFacade analytics,
+  ) {
+    unawaited(
+      showModalBottomSheet<void>(
+        context: baseContext,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(20),
+            ),
+          ),
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(baseContext).padding.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 24,
+            children: [
+              const Text(
+                'Resumen de compra',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              OrderSummaryWidget(
+                subtotal: state.subtotal,
+                shipping: state.shipping,
+                discount: state.discount,
+                total: state.total,
+              ),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    unawaited(
+                      analytics.trackPurchaseEvent(
+                        value: state.total,
+                      ),
+                    );
+                    baseContext.read<ShoppingCubit>().completePurchase();
+                    Navigator.of(baseContext).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Realizar pago',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

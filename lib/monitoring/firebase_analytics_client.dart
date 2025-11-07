@@ -11,6 +11,14 @@ class FirebaseAnalyticsClient implements AnalyticsClient {
   }
 
   @override
+  Future<void> trackLoginFailedEvent({required String reason}) async {
+    await _analytics.logEvent(
+      name: 'login_failed',
+      parameters: {'reason': reason},
+    );
+  }
+
+  @override
   Future<void> trackChipCategoryEvent({required String category}) async {
     await _analytics.logEvent(
       name: 'select_category',
@@ -25,7 +33,7 @@ class FirebaseAnalyticsClient implements AnalyticsClient {
   }) async {
     await _analytics.logEvent(
       name: 'add_to_cart',
-      parameters: {'item_id': itemId, 'price': price},
+      parameters: {'item_id': itemId, 'price': price.toStringAsFixed(2)},
     );
   }
 
@@ -67,7 +75,7 @@ class FirebaseAnalyticsClient implements AnalyticsClient {
   Future<void> trackPurchaseEvent({required double value}) async {
     await _analytics.logEvent(
       name: 'purchase',
-      parameters: {'value': value.toStringAsFixed(2)},
+      parameters: {'total_price': value.toStringAsFixed(2)},
     );
   }
 

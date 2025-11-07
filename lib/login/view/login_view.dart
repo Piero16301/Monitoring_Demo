@@ -35,6 +35,11 @@ class LoginView extends StatelessWidget {
                 backgroundColor: Colors.red,
               ),
             );
+            unawaited(
+              analytics.trackLoginFailedEvent(
+                reason: state.errorMessage,
+              ),
+            );
           }
         },
         builder: (context, state) {

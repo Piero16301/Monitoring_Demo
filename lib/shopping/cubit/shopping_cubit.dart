@@ -10,7 +10,6 @@ class ShoppingCubit extends Cubit<ShoppingState> {
   }
 
   void _loadInitialData() {
-    // Datos iniciales del carrito según la imagen
     final initialItems = [
       const Product(
         id: '21',
@@ -104,7 +103,6 @@ class ShoppingCubit extends Cubit<ShoppingState> {
   }
 
   void completePurchase() {
-    // Lógica para completar la compra
-    // Aquí puedes agregar navegación, API calls, etc.
+    emit(state.copyWith(cartItems: [], subtotal: 0));
   }
 }

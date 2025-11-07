@@ -26,6 +26,14 @@ class LoginCubit extends Cubit<LoginState> {
   }
 
   Future<void> login() async {
+    final validErrors = <String>[
+      'Credenciales inválidas',
+      'Usuario no encontrado',
+      'Error de red',
+      'Cuenta bloqueada',
+      'Tiempo de espera agotado',
+    ];
+
     if (state.formKey?.currentState?.validate() ?? false) {
       emit(state.copyWith(status: LoginStatus.loading));
 
@@ -36,7 +44,12 @@ class LoginCubit extends Cubit<LoginState> {
       if (Random().nextBool()) {
         emit(state.copyWith(status: LoginStatus.success));
       } else {
-        emit(state.copyWith(status: LoginStatus.failure));
+        emit(
+          state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage: validErrors[Random().nextInt(validErrors.length)],
+          ),
+        );
       }
     }
   }

@@ -3,6 +3,7 @@ import 'package:monitoring_demo/models/models.dart';
 abstract class AnalyticsClient {
   // Para LOGIN
   Future<void> trackLoginEvent();
+  Future<void> trackLoginFailedEvent({required String reason});
 
   // Para STORE
   Future<void> trackChipCategoryEvent({required String category});

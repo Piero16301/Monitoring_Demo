@@ -18,6 +18,11 @@ class AnalyticsFacade implements AnalyticsClient {
   }
 
   @override
+  Future<void> trackLoginFailedEvent({required String reason}) {
+    return _client.trackLoginFailedEvent(reason: reason);
+  }
+
+  @override
   Future<void> trackChipCategoryEvent({required String category}) {
     return _client.trackChipCategoryEvent(category: category);
   }
