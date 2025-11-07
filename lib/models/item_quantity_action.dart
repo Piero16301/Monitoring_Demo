@@ -1,0 +1,4 @@
+enum ItemQuantityAction {
+  increment,
+  decrement,
+}

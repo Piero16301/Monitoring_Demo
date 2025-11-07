@@ -1,15 +1,22 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:monitoring_demo/home/cubit/home_cubit.dart';
 import 'package:monitoring_demo/home/widgets/category_chip.dart';
 import 'package:monitoring_demo/home/widgets/product_card.dart';
 import 'package:monitoring_demo/home/widgets/search_bar_widget.dart';
+import 'package:monitoring_demo/monitoring/monitoring.dart';
+import 'package:monitoring_demo/shopping/shopping.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final analytics = AnalyticsFacade();
+
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         if (state.status.isLoading) {
@@ -58,69 +65,46 @@ class HomeView extends StatelessWidget {
                   ),
                 ),
               ),
-
               SliverToBoxAdapter(
                 child: SizedBox(
                   height: 50,
-                  child: ListView(
+                  child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 8,
                     ),
-                    children: [
-                      CategoryChip(
-                        label: 'Todos',
-                        isSelected: state.selectedCategory == 'Todos',
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 12),
+                    itemCount: 4,
+                    itemBuilder: (context, index) {
+                      final label = getCategoryLabel(index);
+                      return CategoryChip(
+                        label: label,
+                        isSelected: state.selectedCategory == label,
                         onTap: () {
+                          unawaited(
+                            analytics.trackChipCategoryEvent(
+                              category: label,
+                            ),
+                          );
                           context.read<HomeCubit>().selectCategory(
-                            'Todos',
+                            label,
                           );
                         },
-                      ),
-                      const SizedBox(width: 12),
-                      CategoryChip(
-                        label: 'Nuevo',
-                        isSelected: state.selectedCategory == 'Nuevo',
-                        onTap: () {
-                          context.read<HomeCubit>().selectCategory(
-                            'Nuevo',
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      CategoryChip(
-                        label: 'Ofertas',
-                        isSelected: state.selectedCategory == 'Ofertas',
-                        onTap: () {
-                          context.read<HomeCubit>().selectCategory(
-                            'Ofertas',
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      CategoryChip(
-                        label: 'Popular',
-                        isSelected: state.selectedCategory == 'Popular',
-                        onTap: () {
-                          context.read<HomeCubit>().selectCategory(
-                            'Popular',
-                          );
-                        },
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ),
-
               SliverPadding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 16,
                 ),
                 sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: getCrossAxisCount(),
                     childAspectRatio: 0.65,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
@@ -131,6 +115,12 @@ class HomeView extends StatelessWidget {
                       return ProductCard(
                         product: product,
                         onAddToCart: () {
+                          unawaited(
+                            analytics.trackAddToCartEvent(
+                              itemId: product.id,
+                              price: product.price,
+                            ),
+                          );
                           context.read<HomeCubit>().addToCart(product);
                           ScaffoldMessenger.of(context).clearSnackBars();
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -154,9 +144,14 @@ class HomeView extends StatelessWidget {
                   clipBehavior: Clip.none,
                   children: [
                     FloatingActionButton(
-                      onPressed: () => Navigator.of(context).pushNamed(
-                        '/shopping',
-                      ),
+                      onPressed: () {
+                        unawaited(analytics.trackBeginCheckoutEvent());
+                        unawaited(
+                          Navigator.of(context).pushNamed(
+                            ShoppingPage.routeName,
+                          ),
+                        );
+                      },
                       child: const Icon(
                         Icons.shopping_cart,
                       ),
@@ -191,5 +186,28 @@ class HomeView extends StatelessWidget {
         );
       },
     );
+  }
+
+  int getCrossAxisCount() {
+    if (Platform.isAndroid || Platform.isIOS) {
+      return 2;
+    } else {
+      return 5;
+    }
+  }
+
+  String getCategoryLabel(int index) {
+    switch (index) {
+      case 0:
+        return 'Todos';
+      case 1:
+        return 'Nuevo';
+      case 2:
+        return 'Ofertas';
+      case 3:
+        return 'Popular';
+      default:
+        return 'Todos';
+    }
   }
 }

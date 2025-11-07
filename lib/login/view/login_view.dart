@@ -2,13 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:monitoring_demo/home/home.dart';
 import 'package:monitoring_demo/login/login.dart';
+import 'package:monitoring_demo/monitoring/monitoring.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final analytics = AnalyticsFacade();
+
     return Scaffold(
       body: BlocConsumer<LoginCubit, LoginState>(
         listener: (context, state) {
@@ -20,7 +24,9 @@ class LoginView extends StatelessWidget {
                 backgroundColor: Colors.green,
               ),
             );
-            unawaited(Navigator.of(context).pushReplacementNamed('/home'));
+            unawaited(
+              Navigator.of(context).pushReplacementNamed(HomePage.routeName),
+            );
           } else if (state.status.isFailure) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
@@ -106,6 +112,7 @@ class LoginView extends StatelessWidget {
                           text: 'Iniciar Sesión',
                           isLoading: state.status.isLoading,
                           onPressed: () {
+                            unawaited(analytics.trackLoginEvent());
                             unawaited(context.read<LoginCubit>().login());
                           },
                         ),

@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:monitoring_demo/models/models.dart';
+import 'package:monitoring_demo/monitoring/monitoring.dart';
 import 'package:monitoring_demo/shopping/cubit/shopping_cubit.dart';
 import 'package:monitoring_demo/shopping/widgets/widgets.dart';
 
@@ -8,11 +12,16 @@ class ShoppingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final analytics = AnalyticsFacade();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            unawaited(analytics.trackBackToStoreEvent());
+            Navigator.of(context).pop();
+          },
         ),
         title: const Text(
           'Mi Carrito',
@@ -48,15 +57,38 @@ class ShoppingView extends StatelessWidget {
                       final product = state.cartItems[index];
                       return CartItemWidget(
                         product: product,
-                        onIncrement: () => context
-                            .read<ShoppingCubit>()
-                            .incrementQuantity(product.id),
-                        onDecrement: () => context
-                            .read<ShoppingCubit>()
-                            .decrementQuantity(product.id),
-                        onRemove: () => context
-                            .read<ShoppingCubit>()
-                            .removeItem(product.id),
+                        onIncrement: () {
+                          unawaited(
+                            analytics.trackChangeItemQuantityEvent(
+                              action: ItemQuantityAction.increment,
+                              itemId: product.id,
+                              newQuantity: product.quantity + 1,
+                            ),
+                          );
+                          context.read<ShoppingCubit>().incrementQuantity(
+                            product.id,
+                          );
+                        },
+                        onDecrement: () {
+                          unawaited(
+                            analytics.trackChangeItemQuantityEvent(
+                              action: ItemQuantityAction.decrement,
+                              itemId: product.id,
+                              newQuantity: product.quantity - 1,
+                            ),
+                          );
+                          context.read<ShoppingCubit>().decrementQuantity(
+                            product.id,
+                          );
+                        },
+                        onRemove: () {
+                          unawaited(
+                            analytics.trackRemoveFromCartEvent(
+                              itemId: product.id,
+                            ),
+                          );
+                          context.read<ShoppingCubit>().removeItem(product.id);
+                        },
                       );
                     },
                   ),
@@ -71,8 +103,14 @@ class ShoppingView extends StatelessWidget {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () =>
-                        context.read<ShoppingCubit>().completePurchase(),
+                    onPressed: () {
+                      unawaited(
+                        analytics.trackPurchaseEvent(
+                          value: state.total,
+                        ),
+                      );
+                      context.read<ShoppingCubit>().completePurchase();
+                    },
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
